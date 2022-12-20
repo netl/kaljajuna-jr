@@ -56,6 +56,10 @@ def message(topic, msg):
         print("move")
         set_direction(int(m))
 
+    if t == train_topic+"/speed":
+        global speed
+        speed = float(m)
+
 #mqtt
 train_topic = f"beertrain/train/{train_id}"
 
@@ -64,11 +68,13 @@ m.set_callback(message)
 m.keepalive = 60 #fixes invalid argument error on connect
 m.connect()
 m.subscribe(train_topic+"/move")
+m.subscribe(train_topic+"/speed")
 
 #state machine
 move_dir = 0b00
 stops = 0b00
 state = None
+speed = 0
 
 def setState(new_state):
     global state
@@ -79,9 +85,10 @@ def setState(new_state):
 def stopped():
     global move_dir
     global stops
+    global speed
     #check if current direction is allowed
     if move_dir and  move_dir ^ (move_dir & stops):
-        mv = ((move_dir>>1) & 0b1) - (move_dir & 0b01)
+        mv = (((move_dir>>1) & 0b1) - (move_dir & 0b01)) * speed
         print(mv)
         mtr.move( mv ) #subtract reverse direction from forward direction
         setState("leaving")
