@@ -74,7 +74,7 @@ m.subscribe(train_topic+"/speed")
 move_dir = 0b00
 stops = 0b00
 state = None
-speed = 0
+speed = 1
 
 def setState(new_state):
     global state
@@ -133,6 +133,7 @@ m.publish(f"{train_topic}", "hello")
 setState("stopped")
 print(state)
 RLED.off()
+n = 0
 try:
     while True:
         GLED.on()
@@ -140,6 +141,13 @@ try:
         runStates()
         GLED.off()
         lightsleep(100)
+
+        #keep mqtt alive
+        n += 1
+        if n >= 50:
+            m.ping()
+            n = 0
+
 except Exception as E:
     GLED.off()
     import sys
